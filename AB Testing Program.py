@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[97]:
 
 
 import pandas as pd
@@ -11,33 +11,33 @@ import matplotlib.pyplot as plt
 from random import sample
 
 
-# In[2]:
+# In[98]:
 
 
 # Read csv file
 df = pd.read_csv('AB_test_data.csv')
 
 
-# In[3]:
+# In[99]:
 
 
 df
 
 
-# In[4]:
+# In[100]:
 
 
 df['Variant'].value_counts()
 
 
-# In[5]:
+# In[101]:
 
 
 df_pop = df.loc[df['Variant'] == 'A']
 df_sample = df.loc[df['Variant'] == 'B']
 
 
-# In[6]:
+# In[102]:
 
 
 df_pop['purchase_TF'].value_counts()
@@ -45,38 +45,38 @@ df_pop['purchase_TF'].value_counts()
 
 # #### Check if Time matters
 
-# In[7]:
+# In[103]:
 
 
 df.groupby(['date','Variant','purchase_TF']).count()
 
 
-# In[8]:
+# In[104]:
 
 
 df.dtypes
 
 
-# In[9]:
+# In[105]:
 
 
 df['date'] = pd.to_datetime(df['date'])
 
 
-# In[10]:
+# In[106]:
 
 
 # Since the AB Test starts at 2020-01-01, create dataframe under this time period
 df_date_count = df.loc[df['date'] >= '2020-01-01'].groupby(['date','Variant','purchase_TF']).count().reset_index()
 
 
-# In[11]:
+# In[107]:
 
 
 df_date_count
 
 
-# In[12]:
+# In[108]:
 
 
 groups = df_date_count[df_date_count['purchase_TF'] == True].groupby("Variant")
@@ -86,7 +86,7 @@ plt.legend()
 plt.show()
 
 
-# In[13]:
+# In[109]:
 
 
 groups = df_date_count[df_date_count['purchase_TF'] == False].groupby("Variant")
@@ -100,34 +100,34 @@ plt.show()
 
 # ### Question 1. A/B Test
 
-# In[14]:
+# In[110]:
 
 
 df_date_count
 
 
-# In[15]:
+# In[111]:
 
 
 # Obtain the number of bookings for control group
 df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')]['purchase_TF'].shape[0]
 
 
-# In[16]:
+# In[112]:
 
 
 # Obtain the number of True & False for control group
 df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')]['purchase_TF'].value_counts()
 
 
-# In[17]:
+# In[113]:
 
 
 # Calculate possibility of success for control group
 df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')]['purchase_TF'].value_counts()[1]/df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')]['purchase_TF'].shape[0]
 
 
-# In[18]:
+# In[114]:
 
 
 # Calculate possibility of success for treatment group
@@ -135,7 +135,7 @@ df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')]['purchase_TF'].val
 df.loc[(df['Variant'] == 'B') & (df['date'] >= '2020-01-01')]['purchase_TF'].value_counts()[1]/df.loc[(df['Variant'] == 'B') & (df['date'] >= '2020-01-01')]['purchase_TF'].shape[0]
 
 
-# In[19]:
+# In[115]:
 
 
 # Calculate possibility of success prior to the experiment
@@ -143,7 +143,7 @@ df.loc[(df['Variant'] == 'B') & (df['date'] >= '2020-01-01')]['purchase_TF'].val
 df.loc[(df['Variant'] == 'A') & (df['date'] < '2020-01-01')]['purchase_TF'].value_counts()[1]/df.loc[(df['Variant'] == 'A') & (df['date'] < '2020-01-01')]['purchase_TF'].shape[0]
 
 
-# In[20]:
+# In[116]:
 
 
 def hypo_test(df0, df1):
@@ -153,7 +153,7 @@ def hypo_test(df0, df1):
         df1 -> (pandas dataframe) dataframe with treatment group information
     
     Return:
-        result -> (float) p-value of the two-tailed test
+        result -> (float) p-value of the one-tailed test
     '''
     
     # Sample size for both groups
@@ -172,14 +172,14 @@ def hypo_test(df0, df1):
     
     print('z score is ' + str(z))
     
-    # calculate p_value associated with the calculated z score -- under 2 tailed test situation
-    result = (1 - stats.norm(0,1).cdf(z))*2
+    # calculate p_value associated with the calculated z score -- under one-tailed test situation
+    result = (1 - stats.norm(0,1).cdf(z))
     print ('P-value is ' + str(result))
     
     return result
 
 
-# In[21]:
+# In[117]:
 
 
 hypo_test(df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')], df.loc[(df['Variant'] == 'B') & (df['date'] >= '2020-01-01')])
@@ -187,7 +187,7 @@ hypo_test(df.loc[(df['Variant'] == 'A') & (df['date'] >= '2020-01-01')], df.loc[
 
 # ### Question 2. Optimal Sample Size
 
-# In[22]:
+# In[118]:
 
 
 # Assume variant A and B are two samples
@@ -226,13 +226,13 @@ def optimal_sample_size(alpha, p0, delta, power):
     return float(result)
 
 
-# In[23]:
+# In[119]:
 
 
 optimal_sample_size(0.05, 0.1519305311938327, 0.03, 0.8)
 
 
-# In[24]:
+# In[120]:
 
 
 def sample_simulation(n, df):
@@ -267,25 +267,25 @@ def sample_simulation(n, df):
     return result
 
 
-# In[25]:
+# In[121]:
 
 
 test_1 = sample_simulation(optimal_sample_size(0.05, 0.1519305311938327, 0.03, 0.8), df[df['date'] >= '2020-01-01'])
 
 
-# In[26]:
+# In[122]:
 
 
 test_1
 
 
-# In[27]:
+# In[123]:
 
 
 hypo_test(test_1.loc[test_1['Variant'] == 'A'], test_1.loc[test_1['Variant'] == 'B'])
 
 
-# In[28]:
+# In[124]:
 
 
 # Obtain 10 samples based on the optimal sample size calculated above
@@ -296,7 +296,7 @@ for i in range(10):
     l_df.append(sample_simulation(optimal_sample_size(0.05, 0.1519305311938327, 0.03, 0.8), df[df['date'] >= '2020-01-01']))
 
 
-# In[29]:
+# In[125]:
 
 
 # For each sample, calculate the p-value 
@@ -313,7 +313,7 @@ for sim_df in l_df:
     
 
 
-# In[30]:
+# In[126]:
 
 
 # Check how many time the null hypo was rejected
@@ -331,7 +331,7 @@ print('Out of 10 simulations based on the optimal sample size calculated, the nu
 
 # ### Question 3. Sequential Test
 
-# In[31]:
+# In[127]:
 
 
 def SPRT(p0, p1, alpha, power, df):
@@ -355,7 +355,8 @@ def SPRT(p0, p1, alpha, power, df):
     result = 0
     
     count = 0
-            
+    
+    # Update lambda according to new observations
     for index, row in df.iterrows():
         if row['purchase_TF'] == True:
             result = result + math.log(p1/p0)
@@ -363,6 +364,7 @@ def SPRT(p0, p1, alpha, power, df):
             result = result + math.log((1 - p1)/(1 - p0))
         count += 1
         
+        # Stop the test when lambda exceed the upper or lower boundary
         if (result >= log_a) or (result <= log_b):
             break
     
@@ -382,7 +384,7 @@ def SPRT(p0, p1, alpha, power, df):
     return (count, choice)
 
 
-# In[32]:
+# In[128]:
 
 
 # p0 take the average p of A group throughout 2019 while p1 take the sum of p0 and delta 0.03
@@ -403,4 +405,25 @@ for index in range(len(l_df)):
     result_q3[decision].append(n_of_iteration)
     
 result_q3
+
+
+# In[133]:
+
+
+# Calculate average number of iteration
+
+n_it = []
+
+for l in result_q3.values():
+    n_it.extend(l)
+    
+avg = sum(n_it)/len(n_it)
+
+print('It requires {} iterations in average to stop the test and have a conclusion.'.format(int(avg)))
+
+
+# In[ ]:
+
+
+
 
